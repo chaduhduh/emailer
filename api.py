@@ -5,27 +5,29 @@
 
 
 # imports
+
 import endpoints
-import json
+from google.appengine.api import (
+    mail,
+    app_identity
+)
 from protorpc import (
     remote,
     messages
 )
-from datetime import(
-    datetime
-)
-from utils import(
+from utils import (
     StringMessage
 )
-import webapp2
-from google.appengine.api import mail, app_identity
 
 
 # declarations
-email = "pick1number@gmail.com"
+
 SEND_EMAIL_REQUEST = endpoints.ResourceContainer(
-    message=messages.StringField(1),
+    recipient=messages.StringField(1),
+    subject=messages.StringField(2),
+    message=messages.StringField(3)
 )
+
 
 # Emailer API
 
@@ -40,15 +42,22 @@ class Emailer(remote.Service):
                       name='send_email',
                       http_method='POST')
     def send_email(self, request):
-        message = request.message or "No Message in Email"
+        if not request.recipient:
+          raise endpoints.BadRequestException('no recipient');
+        if not request.message:
+          raise endpoints.BadRequestException('no message');
+        if not request.subject:
+          raise endpoints.BadRequestException('no subject');
         app_id = app_identity.get_application_id()
-        subject = message
-        body = message
+        recipient = request.recipient
+        subject = request.subject
+        body = request.message
         mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
-                       email,
+                       recipient,
                        subject,
                        body)
         return StringMessage(message="OK")
+
 
 # start api server with our api objects
 
