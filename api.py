@@ -49,7 +49,7 @@ class Emailer(remote.Service):
         if not request.subject:
           raise endpoints.BadRequestException('no subject');
         app_id = app_identity.get_application_id()
-        recipient = request.recipient
+        recipient = request.recipient.split(",")
         subject = request.subject
         body = request.message
         mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
